@@ -46,13 +46,12 @@
 
 int main()
 {
-  int sockfd = socket(AF_INET, SOCK_STREAM, 0);       // sockfd -> socket file descriptor
+  int sockfd = socket(AF_INET, SOCK_STREAM, 0);   // sockfd is short for socket file descriptor
   if (sockfd == -1)
   {
     std::cerr << "socket() failed\n";
     return 1;
   }
-
   std::cout << "Got socket fd: " << sockfd << '\n';
 
   sockaddr_in addr;
@@ -88,6 +87,17 @@ int main()
   }
   std::cout << "Accepted client, fd: " << client_fd << '\n';
 
+  char buffer[1024];
+  ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer));
+  if (bytes_read == -1)
+  {
+    std::cerr << "read() failed\n";
+    return 1;
+  }
+  buffer[bytes_read] = '\0';
+  std::cout << "Read " << bytes_read << " bytes:\n" << buffer << '\n';
+
+  close(client_fd);
   close(sockfd);
   return 0;
 }
