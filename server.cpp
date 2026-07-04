@@ -29,6 +29,11 @@
 //            
 //            - accept()
 //                accept() has 3 parameters for it's signature
+//                  socket - see above
+//                  address - either nullptr or a sockaddr struct of the address of the
+//                            connecting socket
+//                  address_len - socklen_t struct where the input specifies the length
+//                                of the sockaddr struct
 //                  
 //
 //===============================================================
@@ -61,18 +66,27 @@ int main()
     std::cerr << "bind() failed\n";
     return 1;
   }
-
   std::cout << "bind() succeeded\n";
 
-  int listenr = listen(sockfd, 10);
-  if (listenr == -1)
+  int server_addr = listen(sockfd, 10);
+  if (server_addr == -1)
   {
     std::cerr << "listen() fialed\n";
     return 1;
   }
-
   std::cout << "listen() succeeded\n";
 
+  sockaddr_in client_addr;
+  socklen_t client_addr_len = sizeof(client_addr);
+
+  int client_fd = accept(sockfd, (struct sockaddr*)&client_addr,
+                         &client_addr_len);
+  if (client_fd == -1)
+  {
+    std::cerr << "accept() failed\n";
+    return 1;
+  }
+  std::cout << "Accepted client, fd: " << client_fd << '\n';
 
   close(sockfd);
   return 0;
