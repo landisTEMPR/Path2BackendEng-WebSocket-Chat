@@ -75,29 +75,33 @@ int main()
   }
   std::cout << "listen() succeeded\n";
 
-  sockaddr_in client_addr;
-  socklen_t client_addr_len = sizeof(client_addr);
+  while (1)
+  {
+    sockaddr_in client_addr;
+    socklen_t client_addr_len = sizeof(client_addr);
 
-  int client_fd = accept(sockfd, (struct sockaddr*)&client_addr,
+    int client_fd = accept(sockfd, (struct sockaddr*)&client_addr,
                          &client_addr_len);
-  if (client_fd == -1)
-  {
-    std::cerr << "accept() failed\n";
-    return 1;
-  }
-  std::cout << "Accepted client, fd: " << client_fd << '\n';
+    if (client_fd == -1)
+    {
+      std::cerr << "accept() failed\n";
+      continue;
+    }
+    std::cout << "Accepted client, fd: " << client_fd << '\n';
 
-  char buffer[1024];
-  ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer));
-  if (bytes_read == -1)
-  {
-    std::cerr << "read() failed\n";
-    return 1;
-  }
-  buffer[bytes_read] = '\0';
-  std::cout << "Read " << bytes_read << " bytes:\n" << buffer << '\n';
+    char buffer[1024];
+    ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer));
+    if (bytes_read == -1)
+    {
+      std::cerr << "read() failed\n";
+      close(client_fd);
+      continue;
+    }
+    buffer[bytes_read] = '\0';
+    std::cout << "Read " << bytes_read << " bytes:\n" << buffer << '\n';
 
-  close(client_fd);
+    close(client_fd);
+  }
   close(sockfd);
   return 0;
 }
