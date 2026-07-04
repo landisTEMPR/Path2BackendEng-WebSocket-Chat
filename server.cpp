@@ -34,7 +34,9 @@
 //                            connecting socket
 //                  address_len - socklen_t struct where the input specifies the length
 //                                of the sockaddr struct
-//                  
+//
+//            - read()
+//            - write()          
 //
 //===============================================================
 
@@ -42,8 +44,10 @@
 #include "netinet/in.h"
 #include "arpa/inet.h"
 #include "unistd.h"
+#include "parser.h"
 #include <iostream>
 #include <string>
+#include <vector>
 
 int main()
 {
@@ -116,7 +120,27 @@ int main()
     std::cout << "Wrote " << bytes_written << " bytes\n";
 
     close(client_fd);
+    
+    // test printing purposes for parser
+    std::string parserTest = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
+    std::vector<std::string> lines = Parser::splitLines(parserTest);
+
+    for (const std::string& line : lines)
+    {
+      std::cout << "[" << line << "]\n";
+    }
+
+    buffer[bytes_read] = '\0';
+    HttpRequest req = Parser::parse(buffer);
+    std::cout << "Method: " << req.method << ", Path: " << req.path << "\n";
+
+    if (req.headers["Upgrade"] == "websocket" &&
+        req.headers["Connection"].find("Upgrade") != std::string::npos)
+    {
+      std::cout << "Upgraded\n";
+    }
   }
+
   close(sockfd);
   return 0;
 }
