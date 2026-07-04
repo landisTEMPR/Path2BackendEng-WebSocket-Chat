@@ -43,6 +43,7 @@
 #include "arpa/inet.h"
 #include "unistd.h"
 #include <iostream>
+#include <string>
 
 int main()
 {
@@ -99,6 +100,20 @@ int main()
     }
     buffer[bytes_read] = '\0';
     std::cout << "Read " << bytes_read << " bytes:\n" << buffer << '\n';
+
+    std::string body = "WORKING HTTP GET AND POST SERVER";
+    std::string resp1 = "HTTP/1.1 200 OK\r\n"
+                        "Content-Length: " + std::to_string(body.size()) + "\r\n"
+                        "\r\n" +
+                        body;
+    ssize_t bytes_written = write(client_fd, resp1.c_str(), resp1.size());
+    if (bytes_written == -1)
+    {
+      std::cerr << "write() failed\n";
+      close(client_fd);
+      continue;
+    }
+    std::cout << "Wrote " << bytes_written << " bytes\n";
 
     close(client_fd);
   }
