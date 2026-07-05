@@ -9,6 +9,7 @@ std::string SocketHandShake::base64Encode(const std::vector<uint8_t>& data)
   std::string result;
 
   size_t i = 0;
+  
   for (i = 0; i + 3 <= data.size(); i += 3)
   {
     uint8_t b0 = data[i];
@@ -32,8 +33,31 @@ std::string SocketHandShake::base64Encode(const std::vector<uint8_t>& data)
     result += alphabet[group3];
     result += alphabet[group4];
 
-    // TODO handle left over 1-2 bytes.
   }
 
+  size_t remaining = data.size() - i;
+
+  if (remaining == 1)
+  {
+    uint8_t b0 = data[i];
+    uint8_t group1 = b0 >> 2;
+    uint8_t group2 = ((b0 & 0x03) << 4);
+
+    result += alphabet[group1];
+    result += alphabet[group2];
+    result += "==";
+  }
+  else if (remaining == 2)
+  {
+    uint8_t b0 = data[i];
+    uint8_t b1 = data[i];
+    uint8_t group1 = b0 >> 2;
+    uint8_t group2 = ((b0 & 0x03) << 4) | (b1 >> 4);
+
+    result += alphabet[group1];
+    result += alphabet[group2];
+    result += "=";
+
+  }
   return result;
 }
