@@ -46,6 +46,7 @@
 #include "unistd.h"
 #include "parser.h"
 #include "socket-handshake.h"
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -143,6 +144,12 @@ int main()
     std::vector<uint8_t> testData = {'M', 'a', 'n'};
     std::string encoded = SocketHandShake::base64Encode(testData);
     std::cout << "Encoded: [" << encoded << "]\n";
+
+    std::vector<uint8_t> test2 = {'M', 'a'};
+    std::cout << "Encoded 'Ma': [" << SocketHandShake::base64Encode(test2) << "]\n";
+
+    std::vector<uint8_t> test1 = {'M'};
+    std::cout << "Encoded 'M': [" << SocketHandShake::base64Encode(test1) << "]\n";
   }
 
   close(sockfd);

@@ -23,7 +23,7 @@ std::string SocketHandShake::base64Encode(const std::vector<uint8_t>& data)
                                                      // then isolate top 4 bits of b1
                                                      // then finally OR the results 
                                                      
-    uint8_t group3 = ((b1 & 0xF) << 2) | (b2 >> 6);  // isolates bottom 4 of and combines
+    uint8_t group3 = ((b1 & 0x0F) << 2) | (b2 >> 6);  // isolates bottom 4 of and combines
                                                      // top 2 bits of b2
 
     uint8_t group4 = b2 & 0x3F;
@@ -32,7 +32,6 @@ std::string SocketHandShake::base64Encode(const std::vector<uint8_t>& data)
     result += alphabet[group2];
     result += alphabet[group3];
     result += alphabet[group4];
-
   }
 
   size_t remaining = data.size() - i;
@@ -45,17 +44,19 @@ std::string SocketHandShake::base64Encode(const std::vector<uint8_t>& data)
 
     result += alphabet[group1];
     result += alphabet[group2];
-    result += "==";
+    result += "=="; // 2 byte padding for when the bytes arent a even number
   }
-  else if (remaining == 2)
+  else if (remaining == 2) // 1 byte padding when the bytes arent a even number
   {
     uint8_t b0 = data[i];
-    uint8_t b1 = data[i];
+    uint8_t b1 = data[i + 1];
     uint8_t group1 = b0 >> 2;
     uint8_t group2 = ((b0 & 0x03) << 4) | (b1 >> 4);
-
+    uint8_t group3 = ((b1 & 0x0F) << 2);
+     
     result += alphabet[group1];
     result += alphabet[group2];
+    result += alphabet[group3];
     result += "=";
 
   }
