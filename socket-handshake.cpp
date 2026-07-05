@@ -1,7 +1,7 @@
 #include <iostream>
 #include "socket-handshake.h"
 
-static std::string base64Encode(const std::vector<uint8_t>& data)
+std::string SocketHandShake::base64Encode(const std::vector<uint8_t>& data)
 {
   static const std::string alphabet =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
