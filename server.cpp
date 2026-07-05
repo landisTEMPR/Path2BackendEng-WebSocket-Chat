@@ -45,6 +45,7 @@
 #include "arpa/inet.h"
 #include "unistd.h"
 #include "parser.h"
+#include "socket-handshake.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -139,6 +140,9 @@ int main()
     {
       std::cout << "Upgraded\n";
     }
+    std::vector<uint8_t> testData = {'M', 'a', 'n'};
+    std::string encoded = SocketHandShake::base64Encode(testData);
+    std::cout << "Encoded: [" << encoded << "]\n";
   }
 
   close(sockfd);
