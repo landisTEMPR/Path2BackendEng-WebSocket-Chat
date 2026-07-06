@@ -58,7 +58,18 @@ std::string SocketHandShake::base64Encode(const std::vector<uint8_t>& data)
     result += alphabet[group2];
     result += alphabet[group3];
     result += "=";
-
   }
+
+  return result;
+}
+
+std::string SocketHandShake::sha1Encode(const std::vector<uint8_t>& data)
+{
+  static const std::string alphabet =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  
+  std::string result;
+
+
   return result;
 }
