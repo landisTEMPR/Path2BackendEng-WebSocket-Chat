@@ -150,6 +150,15 @@ int main()
 
     std::vector<uint8_t> test1 = {'M'};
     std::cout << "Encoded 'M': [" << SocketHandShake::base64Encode(test1) << "]\n";
+
+    std::vector<uint8_t> abcTest = {'a', 'b', 'c'};
+    std::vector<uint8_t> paddedResult = SocketHandShake::pad(abcTest);
+    std::cout << "Padded size: " << paddedResult.size() << "\n";
+    for (size_t i = 0; i < paddedResult.size(); i++)
+    {
+      printf("%02x ", paddedResult[i]);
+    }
+    std::cout << "\n";
   }
 
   close(sockfd);

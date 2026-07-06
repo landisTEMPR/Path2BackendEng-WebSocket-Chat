@@ -67,9 +67,24 @@ std::string SocketHandShake::sha1Encode(const std::vector<uint8_t>& data)
 {
   static const std::string alphabet =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  return "";
+}
+
+std::vector<uint8_t> SocketHandShake::pad(const std::vector<uint8_t>& data)
+{
+  std::vector<uint8_t> padded = data;
+  uint64_t ml = data.size() * 8;
+  padded.push_back(0x80);
+
+  while (padded.size() % 64 != 56)
+  {
+    padded.push_back(0x00);
+  }
   
-  std::string result;
+  for (int shift = 56; shift >= 0; shift -= 8)
+  {
+    padded.push_back((ml >> shift) & 0xFF);
+  }
 
-
-  return result;
+  return padded;
 }
