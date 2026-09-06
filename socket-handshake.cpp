@@ -85,6 +85,9 @@ std::vector<uint8_t> SocketHandShake::pad(const std::vector<uint8_t>& data)
   {
     padded.push_back((ml >> shift) & 0xFF);
   }
+  
+
+  
 
   return padded;
 }

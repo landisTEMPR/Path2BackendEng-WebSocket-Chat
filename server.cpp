@@ -36,7 +36,12 @@
 //                                of the sockaddr struct
 //
 //            - read()
-//            - write()          
+//                read() has 3 parameters
+//                  socket - the name of what socket you are reading
+//                  buffer - the buffer obj
+//                  buffer size - the expected size of the buffer
+//            - write()
+//                write() 
 //
 //===============================================================
 
