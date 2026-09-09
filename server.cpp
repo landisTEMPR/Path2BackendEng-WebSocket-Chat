@@ -1,47 +1,105 @@
 //===============================================================
 //
 //  Author : Brysen Landis
-//   
+//
 //  Description : This is my implementation of websockets using TCP
 //                and IPv4 IP addresses.
 //
+//  Overview :
+//          The program runs a single-threaded TCP server that accepts
+//          one client connection at a time. For each connection it:
+//            1. Reads the raw HTTP request into a buffer.
+//            2. Parses it into an HttpRequest struct (method, path, headers).
+//            3. Checks whether the request is a WebSocket upgrade request
+//               (Upgrade: websocket + Connection: Upgrade headers).
+//            4. Sends back a plain HTTP 200 response (WebSocket handshake
+//               response is not sent yet).
+//            5. Closes the connection and loops back to accept() again.
+//
+//          NOTE: The block below the write() call (Parser/base64/pad tests)
+//          is temporary scaffolding used to exercise the Parser and
+//          SocketHandShake code while it's being built. It runs on every
+//          request and should be removed once those components are wired
+//          into the real handshake flow.
 //
 //  Documentation :
-//          Functions:
-//            - socket() accepts 3 parameters 
+//          Standard library / syscall functions used:
+//
+//            - socket()
 //                socket(int domain, int type, int protocol)
-//                  domain - what kind of addresses will this use. IPv4 or IPv6
-//                  type - what kind of connection do we want. TCP or UDP
-//                  protocol - just set to 0. idk what this does.
+//                  domain   - address family to use, e.g. AF_INET (IPv4)
+//                             or AF_INET6 (IPv6)
+//                  type     - socket type, e.g. SOCK_STREAM (TCP) or
+//                             SOCK_DGRAM (UDP)
+//                  protocol - protocol to use; 0 lets the OS pick the
+//                             default protocol for the given type
+//                  returns  - a socket file descriptor (>= 0) on success,
+//                             or -1 on error (errno is set)
 //
 //            - bind()
 //                bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
-//                  sockfd - the socket we're binding to
-//                  (struct sockaddr*)&addr - a pointer to a struct 
-//                                            containing the IP & port
-//                  sizeof(addr) - the size in bytes of the structed we passed in
-//            
-//            - listen() 
-//                listen() has two parameters for it's signature
-//                  sockfd - the name of the socket we're using
-//                  backlog - the maximum number of pending connections the OS
-//                            should queue up
-//            
+//                  sockfd  - the socket file descriptor to bind
+//                  addr    - pointer to a sockaddr struct (cast from a
+//                            sockaddr_in for IPv4) containing the IP and port
+//                            to bind the socket to
+//                  addrlen - the size in bytes of the struct pointed to by addr
+//                  returns - 0 on success, -1 on error (errno is set)
+//
+//            - listen()
+//                listen(int sockfd, int backlog)
+//                  sockfd  - the socket file descriptor to listen on
+//                  backlog - the maximum number of pending connections the
+//                            OS should queue up before refusing new ones
+//                  returns - 0 on success, -1 on error (errno is set)
+//
 //            - accept()
-//                accept() has 3 parameters for it's signature
-//                  socket - see above
-//                  address - either nullptr or a sockaddr struct of the address of the
-//                            connecting socket
-//                  address_len - socklen_t struct where the input specifies the length
-//                                of the sockaddr struct
+//                accept(int socket, struct sockaddr *address, socklen_t *address_len)
+//                  socket      - the listening socket file descriptor
+//                  address     - either nullptr, or a sockaddr struct that
+//                                will be filled in with the connecting
+//                                client's address
+//                  address_len - in/out socklen_t*: caller sets it to the
+//                                size of the address buffer; the call sets
+//                                it to the actual size of the address written
+//                  returns     - a new file descriptor for the accepted
+//                                connection on success, or -1 on error
 //
 //            - read()
-//                read() has 3 parameters
-//                  socket - the name of what socket you are reading
-//                  buffer - the buffer obj
-//                  buffer size - the expected size of the buffer
+//                read(int socket, void *buffer, size_t buffer_size)
+//                  socket      - the file descriptor to read from
+//                  buffer      - the buffer to read data into
+//                  buffer_size - the maximum number of bytes to read
+//                  returns     - the number of bytes read (0 means the peer
+//                                closed the connection), or -1 on error
+//
 //            - write()
-//                write() 
+//                write(int socket, const void *buffer, size_t buffer_size)
+//                  socket      - the file descriptor to write to
+//                  buffer      - the data to send
+//                  buffer_size - the number of bytes to send from buffer
+//                  returns     - the number of bytes actually written, or
+//                                -1 on error (a successful call may write
+//                                fewer bytes than requested)
+//
+//          Project-specific functions used here (see their own headers
+//          for full documentation):
+//
+//            - Parser::splitLines(const std::string& raw)
+//                Splits a raw HTTP request string into individual lines
+//                (split on CRLF). Used here only for a quick smoke test.
+//
+//            - Parser::parse(const std::string& raw)
+//                Parses a raw HTTP request string into an HttpRequest
+//                struct containing the method, path, and a header map.
+//
+//            - SocketHandShake::base64Encode(const std::vector<uint8_t>& data)
+//                Encodes raw bytes as a base64 string. Will be used to
+//                build the Sec-WebSocket-Accept header during the
+//                WebSocket handshake.
+//
+//            - SocketHandShake::pad(const std::vector<uint8_t>& data)
+//                Pads a byte sequence to the block size required by the
+//                handshake/encoding step.
 //
 //===============================================================
 
@@ -82,7 +140,7 @@ int main()
   int server_addr = listen(sockfd, 10);
   if (server_addr == -1)
   {
-    std::cerr << "listen() fialed\n";
+    std::cerr << "listen() failed\n";
     return 1;
   }
   std::cout << "listen() succeeded\n";
@@ -127,8 +185,9 @@ int main()
     std::cout << "Wrote " << bytes_written << " bytes\n";
 
     close(client_fd);
-    
-    // test printing purposes for parser
+
+    // TODO: remove — test/smoke-test code for Parser and SocketHandShake,
+    // not part of the real request-handling flow.
     std::string parserTest = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
     std::vector<std::string> lines = Parser::splitLines(parserTest);
 
@@ -169,6 +228,3 @@ int main()
   close(sockfd);
   return 0;
 }
-
-
-
